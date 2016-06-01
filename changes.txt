@@ -1,0 +1,8 @@
+UNBBOOLEAN - CHANGES
+
+V1.1
+*Wireframe view
+*Progress bar to show the progress when multiple operations are applied
+*Change the name of the boolean set operations package (bool to j3dbool)
+*Coordinate files are no longer used to build primitive solids
+*Help menu
