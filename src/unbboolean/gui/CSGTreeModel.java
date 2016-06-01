@@ -8,8 +8,8 @@ import unbboolean.solids.CSGSolid;
 import unbboolean.solids.CompoundSolid;
 
 /**
- * Tree model based on the CSGSolid structure 
- * 
+ * Tree model based on the CSGSolid structure
+ *
  * @author Danilo Balby Silva Castanheira(danbalby@yahoo.com)
  */
 public class CSGTreeModel implements TreeModel
@@ -18,20 +18,20 @@ public class CSGTreeModel implements TreeModel
 	private CSGSolid root;
 	/** listen about the tree changes */
 	private TreeModelListener listener;
-	
+
 	/**
 	 * Constructs a CSGTreeModel with the given root.
-	 * 
+	 *
 	 * @param root tree root
-	 */	
+	 */
 	public CSGTreeModel(CSGSolid root)
 	{
 		this.root = root;
 	}
-	
+
 	/**
 	 * Gets the tree root
-	 * 
+	 *
 	 * @return tree root (a CSGSolid object).
 	 */
 	public Object getRoot()
@@ -41,7 +41,7 @@ public class CSGTreeModel implements TreeModel
 
 	/**
 	 * Gets a child of a given parent in a given index
-	 * 
+	 *
 	 * @param parent parent whose child is to be found
 	 * @param index index of the child to be found
 	 * @return required child, null if parameters are invalid for this model
@@ -50,18 +50,18 @@ public class CSGTreeModel implements TreeModel
 	{
 		if(!(parent instanceof CompoundSolid))
 		{
-			return null; 
+			return null;
 		}
 		else
 		{
 			CompoundSolid solid = (CompoundSolid)parent;
 			if(index==0)
 			{
-				return solid.getOperator1();
+				return solid.getOperand1();
 			}
 			else if(index==1)
 			{
-				return solid.getOperator2();
+				return solid.getOperand2();
 			}
 			else
 			{
@@ -72,10 +72,10 @@ public class CSGTreeModel implements TreeModel
 
 
 	/**
-	 * Gets the number of children of a give parent (2 for CompoundSolid and 0 for 
+	 * Gets the number of children of a give parent (2 for CompoundSolid and 0 for
 	 * PrimitiveSolid)
-	 * 
-	 * @param parent parent whose number of children is to be found 
+	 *
+	 * @param parent parent whose number of children is to be found
 	 * @return number of children of the given parent
 	 */
 	public int getChildCount(Object parent)
@@ -93,7 +93,7 @@ public class CSGTreeModel implements TreeModel
 	/**
 	 * Returns if a given object is a tree leaf (if it is a CompoundSolid object, is
 	 * a node, otherwise is a leaf)
-	 * 
+	 *
 	 * @param node test node
 	 * @return true if node is a leaf, false otherwise
 	 */
@@ -111,7 +111,7 @@ public class CSGTreeModel implements TreeModel
 
 	/**
 	 * Gets the index of a child of a given parent
-	 * 
+	 *
 	 * @param parent parent of the child whose index is required
 	 * @param child child whose index is required
 	 * @return child index, -1 if the parameters are invalid for this model
@@ -125,11 +125,11 @@ public class CSGTreeModel implements TreeModel
 		else
 		{
 			CompoundSolid solid = (CompoundSolid)parent;
-			if(solid.getOperator1()==child)
+			if(solid.getOperand1()==child)
 			{
 				return 0;
 			}
-			else if(solid.getOperator2()==child)
+			else if(solid.getOperand2()==child)
 			{
 				return 1;
 			}
@@ -142,7 +142,7 @@ public class CSGTreeModel implements TreeModel
 
 	/**
 	 * Sets a listener for changes into the model
-	 * 
+	 *
 	 * @param l listener to be set
 	 */
 	public void addTreeModelListener(TreeModelListener l)
@@ -152,7 +152,7 @@ public class CSGTreeModel implements TreeModel
 
 	/**
 	 * Removes a listener for changes into the model
-	 * 
+	 *
 	 * @param l listener to be removed
 	 */
 	public void removeTreeModelListener(TreeModelListener l)
@@ -162,7 +162,7 @@ public class CSGTreeModel implements TreeModel
 			listener = null;
 		}
 	}
-	
+
 	/** Unimplemented method. */
 	public void valueForPathChanged(TreePath path, Object newValue){}
-} 
+}

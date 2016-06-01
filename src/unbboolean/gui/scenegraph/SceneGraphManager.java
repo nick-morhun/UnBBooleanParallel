@@ -11,174 +11,224 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 import com.sun.j3d.utils.universe.SimpleUniverse;
+import java.util.ArrayList;
+import javax.media.j3d.*;
+import javax.vecmath.Vector3d;
 
 import unbboolean.solids.CSGSolid;
 
 /**
  * Manages the scene graph where the solids on the screen are set
- * 
- * @author Danilo Balby Silva Castanheira(danbalby@yahoo.com)
+ *
+ * @author Danilo Balby Silva Castanheira(danbalby@yahoo.com) (modified by N. Morhun)
  */
-public class SceneGraphManager
-{
-	/** branch group where the solids are set */
-	private BranchGroup solidsBG;
-	/** behavior to be able to pick the solids */
-	private GeneralPickBehavior pickBehavior;
-	/** if solid must be presented as wireframe or renderized normally */
-	protected boolean wireframeView = false;
-	
-	/**
-	 * Constructs a SceneGraphManager that shows the solids into the received canvas and
-	 * notifying about selections the received listener 
-	 * 
-	 * @param canvas3d screen where the solids are shown
-	 * @param listener listener that has to be notified about solid selections
-	 */
-	public SceneGraphManager(Canvas3D canvas3d, SolidsSelectionListener listener)
-	{
-		SimpleUniverse simpleU = new SimpleUniverse(canvas3d);
-		Transform3D viewerTranslation = new Transform3D();
-		viewerTranslation.setTranslation(new Vector3f(0,0,50));
-		simpleU.getViewingPlatform().getViewPlatformTransform().setTransform(viewerTranslation);
-		BranchGroup scene = createSceneGraph(simpleU, canvas3d, listener);
-		scene.compile();	
-		simpleU.addBranchGraph(scene);
-	}
-	
-	/**
-	 * Creates the main scene graph
-	 * 
-	 * @param simpleU virtual universe where the scene graph is set 
-	 * @param canvas3d screen where the solids are shown
-	 * @param listener listener that has to be notified about solid selections
-	 * @return the main scene graph
-	 */
-	private BranchGroup createSceneGraph(SimpleUniverse simpleU, Canvas3D canvas3d, SolidsSelectionListener listener)
-	{
-		BranchGroup objRoot = new BranchGroup();
-		
-		// set branch group where solids are set
-		solidsBG = new BranchGroup();
-		solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-		solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-		solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-		objRoot.addChild(solidsBG);
-				
-		//picking
-		pickBehavior = new GeneralPickBehavior(objRoot, canvas3d, listener);
-		objRoot.addChild(pickBehavior);
-				
-		//light
-		BoundingSphere bounds = new BoundingSphere(new Point3d(0,0,0),50);
-		DirectionalLight lightD = new DirectionalLight();
-		lightD.setDirection(new Vector3f(0.0f,-1,-3.0f));
-		lightD.setInfluencingBounds(bounds);
-		objRoot.addChild(lightD);
-		AmbientLight lightA = new AmbientLight();
-		lightA.setInfluencingBounds(bounds);
-		lightA.setColor(new Color3f(0.3f, 0.3f, 0.3f));
-		objRoot.addChild(lightA);
-		
-		return objRoot;
-	}
-	
-	/**
-	 * Adds a solid into the scene graph
-	 * 
-	 * @param solid solid to be added into the scene graph
-	 */
-	public void addSolid(CSGSolid solid)
-	{
-		solid.setWireframeView(wireframeView);
-		
-		BranchGroup solidBG = new BranchGroup();
-		solidBG.setCapability(BranchGroup.ALLOW_DETACH);
-		solidBG.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-		
-		//hierarchy
-		solidBG.addChild(solid);
-		solidsBG.addChild(solidBG);
-	}
-	
-	/** Removes all the selected solids */
-	public void removeSelectedSolids()
-	{
-		BranchGroup bg;
-		CSGSolid solid;
-		Enumeration list = solidsBG.getAllChildren();
-		while(list.hasMoreElements())
-		{
-			bg = (BranchGroup)list.nextElement();
-			solid = (CSGSolid)bg.getChild(0);
-			if(solid.isLighted())
-			{
-				solidsBG.removeChild(bg);
-				bg.removeChild(solid);
-			}
-		}
-	}
-	
-	/**
-	 * Removes a solid from the scene graph
-	 * 
-	 * @param solid solid to be removed from the scene graph
-	 */
-	public void removeSolid(CSGSolid solid)
-	{
-		BranchGroup bg;
-		CSGSolid activeSolid;
-		Enumeration list = solidsBG.getAllChildren();
-		while(list.hasMoreElements())
-		{
-			bg = (BranchGroup)list.nextElement();
-			activeSolid = (CSGSolid)bg.getChild(0);
-			if(solid==activeSolid)
-			{
-				solidsBG.removeChild(bg);
-				bg.removeChild(activeSolid);
-				return;
-			}
-		}
-	}
-	
-	/**
-	 * Sets move mode on
-	 * 
-	 * @param solid move mode solid
-	 */
-	public void setMoveMode(CSGSolid solid)
-	{
-		pickBehavior.setMoveMode(solid);
-	}
-	
-	/**
-	 * Sets move mode off
-	 * 
-	 * @param solid solid to be selected after the move mode is off 
-	 */
-	public void unsetMoveMode(CSGSolid solid)
-	{
-		pickBehavior.unsetMoveMode(solid);
-	}
-	
-	/**
-	 * Defines if solids must be presented as wireframe or renderized normally 
-	 * 
-	 * @param wireFrameView true to the solid be presented as wireframe, false to be renderized normally
-	 */
-	public void setWireFrameView(boolean wireFrameView)
-	{
-		this.wireframeView = wireFrameView;
-		
-		BranchGroup bg;
-		CSGSolid solid;
-		Enumeration list = solidsBG.getAllChildren();
-		while(list.hasMoreElements())
-		{
-			bg = (BranchGroup)list.nextElement();
-			solid = (CSGSolid)bg.getChild(0);
-			solid.setWireframeView(wireFrameView);
-		}
-	}
+public class SceneGraphManager {
+
+    /**
+     * branch group where the solids are set
+     */
+    private BranchGroup solidsBG;
+    /**
+     * behavior to be able to pick the solids
+     */
+    private GeneralPickBehavior pickBehavior;
+    /**
+     * if solid must be presented as wireframe or renderized normally
+     */
+    protected boolean wireframeView = false;
+    public SimpleUniverse simpleU;
+
+    /**
+     * Constructs a SceneGraphManager that shows the solids into the received
+     * canvas and notifying about selections the received listener
+     *
+     * @param canvas3d screen where the solids are shown
+     * @param listener listener that has to be notified about solid selections
+     */
+    public SceneGraphManager(Canvas3D canvas3d, SolidsSelectionListener listener) {
+        simpleU = new SimpleUniverse(canvas3d);
+        BranchGroup scene = createSceneGraph(canvas3d, listener);
+        scene.compile();
+        simpleU.addBranchGraph(scene);
+    }
+
+    /**
+     * Creates the main scene graph
+     *
+     * @param simpleU virtual universe where the scene graph is set
+     * @param canvas3d screen where the solids are shown
+     * @param listener listener that has to be notified about solid selections
+     * @return the main scene graph
+     */
+    private BranchGroup createSceneGraph(Canvas3D canvas3d,
+            SolidsSelectionListener listener) {
+        BranchGroup objRoot = new BranchGroup();
+
+        // set branch group where solids are set
+        solidsBG = new BranchGroup();
+        solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+        solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+        solidsBG.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        objRoot.addChild(solidsBG);
+
+        //view transform
+        Transform3D lookAt = new Transform3D();
+        lookAt.lookAt(new Point3d(0.0, 0.0, 30.0), new Point3d(0.0, 0.0, 0.0), new Vector3d(0.0, 1.0, 0.0));
+        lookAt.setScale(0.5);
+        lookAt.invert();
+        TransformGroup viewPlatformTG = simpleU.getViewingPlatform().getViewPlatformTransform();
+        viewPlatformTG.setTransform(lookAt);
+
+        // picking
+        pickBehavior = new GeneralPickBehavior(objRoot, canvas3d, listener, viewPlatformTG);
+        objRoot.addChild(pickBehavior);
+
+        // light
+        BoundingSphere worldBounds = new BoundingSphere(new Point3d(0, 0, 0), 150);
+
+        DirectionalLight lightD = new DirectionalLight();
+        lightD.setDirection(new Vector3f(0.0f, -1, -3.0f));
+        lightD.setInfluencingBounds(worldBounds);
+        objRoot.addChild(lightD);
+
+        AmbientLight lightA = new AmbientLight();
+        lightA.setInfluencingBounds(worldBounds);
+        lightA.setColor(new Color3f(0.2f, 0.2f, 0.2f));
+        objRoot.addChild(lightA);
+
+        // Set the background color and its application bounds
+        Background background = new Background();
+        background.setColor(new Color3f(142f / 255f, 153f / 255f, 173f / 255f));
+        background.setCapability(Background.ALLOW_COLOR_WRITE);
+        background.setApplicationBounds(worldBounds);
+        objRoot.addChild(background);
+        return objRoot;
+    }
+
+    /**
+     * Adds a solid into the scene graph
+     *
+     * @param solid solid to be added into the scene graph
+     */
+    public void addSolid(CSGSolid solid) {
+        solid.setWireframeView(wireframeView);
+
+        BranchGroup solidBG = new BranchGroup();
+        solidBG.setCapability(BranchGroup.ALLOW_DETACH);
+        solidBG.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+
+        // hierarchy
+        try {
+            solidBG.addChild(solid);
+            solidsBG.addChild(solidBG);
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * Removes all the selected solids
+     */
+    public void removeSelectedSolids() {
+        BranchGroup bg;
+        CSGSolid solid;
+        Enumeration<?> list = solidsBG.getAllChildren();
+        while (list.hasMoreElements()) {
+            bg = (BranchGroup) list.nextElement();
+            solid = (CSGSolid) bg.getChild(0);
+            if (!solid.isLighted()) {
+                solidsBG.removeChild(bg);
+                bg.removeChild(solid);
+            }
+        }
+    }
+
+    /**
+     * Removes a solid from the scene graph
+     *
+     * @param solid solid to be removed from the scene graph
+     */
+    public void removeSolid(CSGSolid solid) {
+        BranchGroup bg;
+        CSGSolid activeSolid;
+        Enumeration<?> list = solidsBG.getAllChildren();
+        while (list.hasMoreElements()) {
+            bg = (BranchGroup) list.nextElement();
+            activeSolid = (CSGSolid) bg.getChild(0);
+            if (solid == activeSolid) {
+                solidsBG.removeChild(bg);
+                bg.removeChild(activeSolid);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Sets move mode on
+     *
+     * @param solid move mode solid
+     */
+    public void setMoveMode(CSGSolid solid) {
+        pickBehavior.setMoveMode(solid);
+    }
+
+    /**
+     * Sets move mode off
+     *
+     * @param solid solid to be selected after the move mode is off
+     */
+    public void unsetMoveMode(CSGSolid solid) {
+        pickBehavior.unsetMoveMode(solid);
+    }
+
+    /**
+     * Defines if solids must be presented as wireframe or renderized normally
+     *
+     * @param wireFrameView true to the solid be presented as wireframe, false
+     * to be renderized normally
+     */
+    public void setWireFrameView(boolean wireFrameView) {
+        this.wireframeView = wireFrameView;
+
+        BranchGroup bg;
+        CSGSolid solid;
+        Enumeration<?> list = solidsBG.getAllChildren();
+        while (list.hasMoreElements()) {
+            bg = (BranchGroup) list.nextElement();
+            solid = (CSGSolid) bg.getChild(0);
+            solid.setWireframeView(wireFrameView);
+        }
+    }
+
+    /**
+     * Defines if solids can be moved with mouse or with typeins only
+     *
+     * @param mouseTranslate true to the solid be moved with mouse, false to be
+     * moved with typing values
+     */
+    public void setMouseTranslate(boolean mouseTranslate) {
+        this.pickBehavior.setMouseTranslate(mouseTranslate);
+    }
+
+    /**
+     * @return the solidsBG
+     */
+    public ArrayList<CSGSolid> getAllSolids() {
+        ArrayList<CSGSolid> solids = new ArrayList<CSGSolid>();
+        BranchGroup bg;
+        CSGSolid solid;
+        Enumeration<?> list = solidsBG.getAllChildren();
+        while (list.hasMoreElements()) {
+            bg = (BranchGroup) list.nextElement();
+            solid = (CSGSolid) bg.getChild(0);
+            solids.add(solid);
+        }
+        return solids;
+    }
+
+    /**
+     * Reset camera position.
+     */
+    public void resetView(){
+        this.pickBehavior.resetView();
+    }
 }
